@@ -165,6 +165,7 @@ class Window(QMainWindow):
             OLLightMap[OLName].setStyleSheet("background-color: rgb(120, 120, 120);")
 
         self.window.statusLight.setStyleSheet("background-color: rgb(120, 120, 120);")
+        self.window.autoPhase.setEnabled(False)
 
     @Slot()
     def checkValidAddress(self):
@@ -177,6 +178,7 @@ class Window(QMainWindow):
                 self.window.sendButton.setEnabled(True)
                 self.window.pushButton.setText("Disconnect")
                 self.window.IPaddress.setEnabled(False)
+                self.window.autoPhase.setEnabled(True)
                 self.window.Sensitivity.setCurrentIndex(self.device.querySensitivity())
                 self.task1.start()
                 self.task2.start()
