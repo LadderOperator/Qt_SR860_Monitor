@@ -1,7 +1,5 @@
 import requests
 import html
-import time
-#import vxi11
 
 header = {
     "Cache-Control": "no-cache",
@@ -14,7 +12,6 @@ header = {
     "Accept-Encoding": "gzip, deflate",
     "Connection": "keep-alive",
     }
-
 
 
 class SR860Device():
@@ -86,8 +83,17 @@ class SR860Device():
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
         payload = urlencode(cmd) + "\u0000"
-        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
 
+    def autoPhase(self):
+        """
+        Set auto phase, wait for 5 seconds
+        """
+        cmd = {"action": "send", "command": "APHS"}
+        header["Origin"] = "http://%s" % self.ip
+        header["Referer"] = "http://%s/" % self.ip
+        payload = urlencode(cmd) + "\u0000"
+        requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
 
     def checkIP(self) -> bool:
         """

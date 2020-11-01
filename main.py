@@ -72,13 +72,12 @@ class updateLightTask(QThread):
 
             self.device = SR860.SR860Device(self.winObj.IPaddress.text())
 
-            OLStatus = self.device.queryOVLoad()
+            self.OLStatus = self.device.queryOVLoad()
 
-            if isinstance(OLStatus, dict):
+            if isinstance(self.OLStatus, dict):
                 for OLName in self.OLLightMap.keys():
-                    self.OLLightMap[OLName].setStyleSheet(colorSetting[OLStatus[OLName]])
-
-            time.sleep(0.1)
+                    self.OLLightMap[OLName].setStyleSheet(colorSetting[self.OLStatus[OLName]])
+                    time.sleep(0.015)
 
     @Slot()
     def stop(self):
@@ -103,14 +102,22 @@ class Window(QMainWindow):
         self.window.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
         self.window.setWindowFlag(Qt.WindowMinimizeButtonHint, False)
 
+        self.flags = self.window.windowFlags()
+
+        self.window.stayOnTop.stateChanged.connect(self.setStayOnTop)
+
         self.window.pushButton.clicked.connect(self.checkValidAddress)
 
         self.window.Sensitivity.currentIndexChanged.connect(self.sButtonControl)
         self.sButtonControl()
-
         self.window.sDown.clicked.connect(self.sensiDown)
         self.window.sUp.clicked.connect(self.sensiUp)
         self.window.sendButton.clicked.connect(self.setSensi)
+
+        self.APHS_Timer = QTimer()
+        self.APHS_Timer.setSingleShot(True)
+        self.APHS_Timer.timeout.connect(self.APHS_Ready)
+        self.window.autoPhase.clicked.connect(self.APHS_Start)
 
         self.task1 = updateTextTask(self.window)
         self.task2 = updateLightTask(self.window)
@@ -118,6 +125,27 @@ class Window(QMainWindow):
         self.window.quit.clicked.connect(self.closeAll)
 
         self.ui_file.close()
+
+    @Slot()
+    def setStayOnTop(self):
+        if self.window.stayOnTop.isChecked():
+            self.window.setWindowFlags(self.flags | Qt.WindowStaysOnTopHint)
+        elif not self.window.stayOnTop.isChecked():
+            self.window.setWindowFlags(self.flags)
+        self.window.show()
+
+    @Slot()
+    def APHS_Ready(self):
+        self.window.autoPhase.setEnabled(True)
+        self.window.APHS_Label.setText("Status: Ready.")
+
+    @Slot()
+    def APHS_Start(self):
+        self.window.autoPhase.setEnabled(False)
+        self.window.APHS_Label.setText("Status: Waiting...")
+        self.device = SR860.SR860Device(self.winObj.IPaddress.text())
+        self.device.autoPhase()
+        self.APHS_Timer.start(3000)
 
     @Slot()
     def clearStatus(self):
@@ -177,16 +205,13 @@ class Window(QMainWindow):
     def setSensi(self):
         self.device.setSensitivity(self.window.Sensitivity.currentIndex())
 
-
     @Slot()
     def sensiUp(self):
         self.window.Sensitivity.setCurrentIndex(self.window.Sensitivity.currentIndex() - 1)
 
-
     @Slot()
     def sensiDown(self):
         self.window.Sensitivity.setCurrentIndex(self.window.Sensitivity.currentIndex() + 1)
-
 
     @Slot()
     def sButtonControl(self):
@@ -206,6 +231,7 @@ class Window(QMainWindow):
         self.task1.stop()
         self.task2.stop()
         self.window.close()
+
 
 if __name__ == "__main__":
 
