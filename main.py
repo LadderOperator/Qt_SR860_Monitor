@@ -9,8 +9,8 @@ from PySide2.QtCore import QFile, Slot, QTimer, QThread, Qt
 from PySide2.QtUiTools import QUiLoader
 
 colorSetting = {
-        False: "background-color: rgb(0, 255, 0);\n",
-        True: "background-color: rgb(255, 0, 0);\n"
+        False: "background-color: rgb(120, 120, 120);",
+        True: "background-color: rgb(255, 0, 0);"
     }
 
 
