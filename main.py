@@ -100,6 +100,8 @@ class updateLightTask(QThread):
                 connectSetting[self.OLStatus == 42]
             )
 
+            #time.sleep(0.1)
+
     @Slot()
     def stop(self):
         print("Thread 2 Stopped.")
