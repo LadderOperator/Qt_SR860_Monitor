@@ -30,7 +30,12 @@ class SR860Device():
         payload = urlencode(cmd) + "\u0000"
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
-        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        req = requests.post(
+            "http://%s/%s" % (self.ip, self.url),
+            data=payload,
+            headers=header,
+            timeout=1
+        )
         if req.status_code == 200:
             return XYRT_parse(req.text)
         else:
@@ -44,7 +49,12 @@ class SR860Device():
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
         payload = urlencode(cmd) + "\u0000"
-        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        req = requests.post(
+            "http://%s/%s" % (self.ip, self.url),
+            data=payload,
+            headers=header,
+            timeout=1
+        )
         # print(req.text)
         if req.status_code == 200:
             bitbool = {0: False, 1: True}
@@ -62,7 +72,8 @@ class SR860Device():
                     "dataCH4Output": bitbool[(code & 1 << 11) >> 11]
                 }
                 return overLoadStatus
-            except Exception:
+            except Exception as e:
+                print(e)
                 return 42
         else:
             return 42
@@ -75,11 +86,17 @@ class SR860Device():
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
         payload = urlencode(cmd) + "\u0000"
-        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        req = requests.post(
+            "http://%s/%s" % (self.ip, self.url),
+            data=payload,
+            headers=header,
+            timeout=1
+        )
         if req.status_code == 200:
             try:
                 return int(req.text.split("=")[-1])
-            except Exception:
+            except Exception as e:
+                print(e)
                 return 42
         else:
             return 42
@@ -92,7 +109,12 @@ class SR860Device():
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
         payload = urlencode(cmd) + "\u0000"
-        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        req = requests.post(
+            "http://%s/%s" % (self.ip, self.url),
+            data=payload,
+            headers=header,
+            timeout=1
+        )
         if req.status_code == 200:
             return 0
         else:
@@ -106,7 +128,11 @@ class SR860Device():
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
         payload = urlencode(cmd) + "\u0000"
-        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        req = requests.post("http://%s/%s" % (self.ip, self.url),
+            data=payload,
+            headers=header,
+            timeout=1
+        )
         if req.status_code == 200:
             return 0
         else:
@@ -122,14 +148,20 @@ class SR860Device():
             header["Referer"] = "http://%s/" % self.ip
             payload = urlencode(cmd) + "\u0000"
             print(payload)
-            req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+            req = requests.post(
+            "http://%s/%s" % (self.ip, self.url),
+                data=payload,
+                headers=header,
+                timeout=1
+            )
 
             print(req.text)
             if req.status_code == 200 and "Stanford Research" in html.unescape(req.text):
                 return True
             else:
                 return False
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
 
 
@@ -163,5 +195,6 @@ def XYRT_parse(rtext):
             return rtext_dict
         else:
             return 42
-    except Exception:
+    except Exception as e:
+        print(e)
         return 42

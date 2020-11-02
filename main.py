@@ -18,6 +18,7 @@ connectSetting = {
         True: "background-color: rgb(120, 120, 120);"
     }
 
+
 class updateTextTask(QThread):
 
     def __init__(self, winObj):
@@ -47,9 +48,13 @@ class updateTextTask(QThread):
             res = self.device.querySensitivity()
 
             if res != 42:
-                self.winObj.currentSensi.setText(self.winObj.Sensitivity.itemText(res))
+                self.winObj.currentSensi.setText(
+                    self.winObj.Sensitivity.itemText(res)
+                )
 
-            self.winObj.statusLight.setStyleSheet(connectSetting[res == 42 or XYRTDict == 42])
+            self.winObj.statusLight.setVisible(
+                res != 42 and XYRTDict != 42
+            )
 
             time.sleep(0.1)
 
@@ -88,10 +93,12 @@ class updateLightTask(QThread):
             if self.OLStatus != 42:
 
                 for OLName in self.OLLightMap.keys():
-                    self.OLLightMap[OLName].setStyleSheet(colorSetting[self.OLStatus[OLName]])
+                    self.OLLightMap[OLName].setVisible(self.OLStatus[OLName])
                     time.sleep(0.02)
 
-            self.winObj.statusLight.setStyleSheet(connectSetting[self.OLStatus == 42])
+            self.winObj.statusLight.setStyleSheet(
+                connectSetting[self.OLStatus == 42]
+            )
 
     @Slot()
     def stop(self):
@@ -118,11 +125,17 @@ class Window(QMainWindow):
 
         self.flags = self.window.windowFlags()
 
+        self.clearStatus()
+
         self.window.stayOnTop.stateChanged.connect(self.setStayOnTop)
 
         self.window.pushButton.clicked.connect(self.checkValidAddress)
 
-        self.window.Sensitivity.currentIndexChanged.connect(self.sButtonControl)
+        self.sensiMax = self.window.Sensitivity.count() - 1
+        self.window.Sensitivity.currentIndexChanged.connect(
+            self.sButtonControl
+            )
+
         self.sButtonControl()
         self.window.sDown.clicked.connect(self.sensiDown)
         self.window.sUp.clicked.connect(self.sensiUp)
@@ -159,13 +172,13 @@ class Window(QMainWindow):
         self.window.APHS_Label.setText("Status: Waiting...")
         self.device = SR860.SR860Device(self.winObj.IPaddress.text())
         res = self.device.autoPhase()
-        if  res != 42:
+        if res != 42:
             self.APHS_Timer.start(3000)
         else:
             self.window.APHS_Label.setText("Status: Failure.")
             self.window.autoPhase.setEnabled(True)
 
-        self.window.statusLight.setStyleSheet(connectSetting[res == 42])
+        self.window.statusLight.setVisible(res != 42)
 
     @Slot()
     def clearStatus(self):
@@ -182,9 +195,9 @@ class Window(QMainWindow):
         }
 
         for OLName in OLLightMap.keys():
-            OLLightMap[OLName].setStyleSheet("background-color: rgb(120, 120, 120);")
+            OLLightMap[OLName].setVisible(False)
 
-        self.window.statusLight.setStyleSheet("background-color: rgb(120, 120, 120);")
+        self.window.statusLight.setVisible(False)
         self.window.autoPhase.setEnabled(False)
 
     @Slot()
@@ -194,17 +207,19 @@ class Window(QMainWindow):
 
         if self.window.pushButton.text() == "Connect":
             if self.device.checkIP():
-                self.window.statusLight.setStyleSheet("background-color: rgb(0, 255, 0);")
+                self.window.statusLight.setVisible(True)
                 self.window.sendButton.setEnabled(True)
                 self.window.pushButton.setText("Disconnect")
                 self.window.IPaddress.setEnabled(False)
                 self.window.autoPhase.setEnabled(True)
-                self.window.Sensitivity.setCurrentIndex(self.device.querySensitivity())
+                self.window.Sensitivity.setCurrentIndex(
+                    self.device.querySensitivity()
+                )
                 self.task1.start()
                 self.task2.start()
 
             else:
-                self.window.statusLight.setStyleSheet("background-color: rgb(255, 0, 0);")
+                self.window.statusLight.setVisible(False)
                 self.msgBox = QMessageBox()
                 self.msgBox.setWindowTitle("Invalid IP")
                 self.msgBox.setText("Please check IP address!")
@@ -216,7 +231,7 @@ class Window(QMainWindow):
                 self.clearStatus()
 
         elif self.window.pushButton.text() == "Disconnect":
-            self.window.statusLight.setStyleSheet("background-color: rgb(120, 120, 120);")
+            self.window.statusLight.setVisible(False)
             self.window.IPaddress.setEnabled(True)
             self.window.pushButton.setText("Connect")
             self.task1.stop()
@@ -225,15 +240,21 @@ class Window(QMainWindow):
 
     @Slot()
     def setSensi(self):
-        self.device.setSensitivity(self.window.Sensitivity.currentIndex())
+        self.device.setSensitivity(
+            self.window.Sensitivity.currentIndex()
+        )
 
     @Slot()
     def sensiUp(self):
-        self.window.Sensitivity.setCurrentIndex(self.window.Sensitivity.currentIndex() - 1)
+        self.window.Sensitivity.setCurrentIndex(
+            self.window.Sensitivity.currentIndex() - 1
+        )
 
     @Slot()
     def sensiDown(self):
-        self.window.Sensitivity.setCurrentIndex(self.window.Sensitivity.currentIndex() + 1)
+        self.window.Sensitivity.setCurrentIndex(
+            self.window.Sensitivity.currentIndex() + 1
+        )
 
     @Slot()
     def sButtonControl(self):
@@ -241,7 +262,7 @@ class Window(QMainWindow):
             self.window.sUp.setEnabled(False)
         else:
             self.window.sUp.setEnabled(True)
-        if self.window.Sensitivity.currentIndex() == self.window.Sensitivity.count() - 1:
+        if self.window.Sensitivity.currentIndex() == self.sensiMax:
             self.window.sDown.setEnabled(False)
         else:
             self.window.sDown.setEnabled(True)
