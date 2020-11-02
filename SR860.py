@@ -34,7 +34,7 @@ class SR860Device():
         if req.status_code == 200:
             return XYRT_parse(req.text)
         else:
-            return {}
+            return 42
 
     def queryOVLoad(self) -> dict:
         """
@@ -48,20 +48,24 @@ class SR860Device():
         # print(req.text)
         if req.status_code == 200:
             bitbool = {0: False, 1: True}
-            code = int(req.text.split("=")[-1])
-            overLoadStatus = {
-                "inputRange": bitbool[(code & 1 << 4) >> 4],
-                "extRefUnlocked": bitbool[(code & 1 << 3) >> 3],
-                "CH1Output": bitbool[(code & 1 << 0) >> 0],
-                "CH2Output": bitbool[(code & 1 << 1) >> 1],
-                "dataCH1Output": bitbool[(code & 1 << 8) >> 8],
-                "dataCH2Output": bitbool[(code & 1 << 9) >> 9],
-                "dataCH3Output": bitbool[(code & 1 << 10) >> 10],
-                "dataCH4Output": bitbool[(code & 1 << 11) >> 11]
-            }
-            return overLoadStatus
+            try:
+                code = req.text.split("=")[-1]
+                code = int(code)
+                overLoadStatus = {
+                    "inputRange": bitbool[(code & 1 << 4) >> 4],
+                    "extRefUnlocked": bitbool[(code & 1 << 3) >> 3],
+                    "CH1Output": bitbool[(code & 1 << 0) >> 0],
+                    "CH2Output": bitbool[(code & 1 << 1) >> 1],
+                    "dataCH1Output": bitbool[(code & 1 << 8) >> 8],
+                    "dataCH2Output": bitbool[(code & 1 << 9) >> 9],
+                    "dataCH3Output": bitbool[(code & 1 << 10) >> 10],
+                    "dataCH4Output": bitbool[(code & 1 << 11) >> 11]
+                }
+                return overLoadStatus
+            except Exception:
+                return 42
         else:
-            return None
+            return 42
 
     def querySensitivity(self) -> int:
         """
@@ -73,7 +77,12 @@ class SR860Device():
         payload = urlencode(cmd) + "\u0000"
         req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
         if req.status_code == 200:
-            return int(req.text.split("=")[-1])
+            try:
+                return int(req.text.split("=")[-1])
+            except Exception:
+                return 42
+        else:
+            return 42
 
     def setSensitivity(self, code):
         """
@@ -83,7 +92,11 @@ class SR860Device():
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
         payload = urlencode(cmd) + "\u0000"
-        requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        if req.status_code == 200:
+            return 0
+        else:
+            return 42
 
     def autoPhase(self):
         """
@@ -93,7 +106,11 @@ class SR860Device():
         header["Origin"] = "http://%s" % self.ip
         header["Referer"] = "http://%s/" % self.ip
         payload = urlencode(cmd) + "\u0000"
-        requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
+        if req.status_code == 200:
+            return 0
+        else:
+            return 42
 
     def checkIP(self) -> bool:
         """
@@ -108,11 +125,11 @@ class SR860Device():
             req = requests.post("http://%s/%s" % (self.ip, self.url), data=payload, headers=header)
 
             print(req.text)
-            if req.status_code == 200 and "SR860" in html.unescape(req.text):
+            if req.status_code == 200 and "Stanford Research" in html.unescape(req.text):
                 return True
             else:
                 return False
-        except:
+        except Exception:
             return False
 
 
@@ -123,22 +140,28 @@ def urlencode(para_dict):
 def XYRT_parse(rtext):
     rtext = html.unescape(rtext)
     rtext_list = rtext.strip().split(",")
-    rtext_dict = {
-        "X": {
-            "val": float(rtext_list[1]),
-            "unit": rtext_list[2]
-        },
-        "Y": {
-            "val": float(rtext_list[4]),
-            "unit": rtext_list[5]
-        },
-        "R": {
-            "val": float(rtext_list[7]),
-            "unit": rtext_list[8]
-        },
-        "Theta": {
-            "val": float(rtext_list[10]),
-            "unit": rtext_list[11]
-        },
-    }
-    return rtext_dict
+    try:
+        if len(rtext_list) == 12:
+            rtext_dict = {
+                "X": {
+                    "val": float(rtext_list[1]),
+                    "unit": rtext_list[2]
+                },
+                "Y": {
+                    "val": float(rtext_list[4]),
+                    "unit": rtext_list[5]
+                },
+                "R": {
+                    "val": float(rtext_list[7]),
+                    "unit": rtext_list[8]
+                },
+                "Theta": {
+                    "val": float(rtext_list[10]),
+                    "unit": rtext_list[11]
+                },
+            }
+            return rtext_dict
+        else:
+            return 42
+    except Exception:
+        return 42

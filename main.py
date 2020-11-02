@@ -13,6 +13,10 @@ colorSetting = {
         True: "background-color: rgb(255, 0, 0);"
     }
 
+connectSetting = {
+        False: "background-color: rgb(0, 255, 0);",
+        True: "background-color: rgb(120, 120, 120);"
+    }
 
 class updateTextTask(QThread):
 
@@ -29,16 +33,23 @@ class updateTextTask(QThread):
 
             XYRTDict = self.device.queryXYRT()
 
-            self.winObj.X_VAL.setText("%s" % XYRTDict["X"]["val"])
-            self.winObj.X_UNIT.setText("%s" % XYRTDict["X"]["unit"])
-            self.winObj.Y_VAL.setText("%s" % XYRTDict["Y"]["val"])
-            self.winObj.Y_UNIT.setText("%s" % XYRTDict["Y"]["unit"])
-            self.winObj.R_VAL.setText("%s" % XYRTDict["R"]["val"])
-            self.winObj.R_UNIT.setText("%s" % XYRTDict["R"]["unit"])
-            self.winObj.T_VAL.setText("%s" % XYRTDict["Theta"]["val"])
-            self.winObj.T_UNIT.setText("%s" % XYRTDict["Theta"]["unit"])
+            if XYRTDict != 42:
 
-            self.winObj.currentSensi.setText(self.winObj.Sensitivity.itemText(self.device.querySensitivity()))
+                self.winObj.X_VAL.setText("%s" % XYRTDict["X"]["val"])
+                self.winObj.X_UNIT.setText("%s" % XYRTDict["X"]["unit"])
+                self.winObj.Y_VAL.setText("%s" % XYRTDict["Y"]["val"])
+                self.winObj.Y_UNIT.setText("%s" % XYRTDict["Y"]["unit"])
+                self.winObj.R_VAL.setText("%s" % XYRTDict["R"]["val"])
+                self.winObj.R_UNIT.setText("%s" % XYRTDict["R"]["unit"])
+                self.winObj.T_VAL.setText("%s" % XYRTDict["Theta"]["val"])
+                self.winObj.T_UNIT.setText("%s" % XYRTDict["Theta"]["unit"])
+
+            res = self.device.querySensitivity()
+
+            if res != 42:
+                self.winObj.currentSensi.setText(self.winObj.Sensitivity.itemText(res))
+
+            self.winObj.statusLight.setStyleSheet(connectSetting[res == 42 or XYRTDict == 42])
 
             time.sleep(0.1)
 
@@ -74,10 +85,13 @@ class updateLightTask(QThread):
 
             self.OLStatus = self.device.queryOVLoad()
 
-            if isinstance(self.OLStatus, dict):
+            if self.OLStatus != 42:
+
                 for OLName in self.OLLightMap.keys():
                     self.OLLightMap[OLName].setStyleSheet(colorSetting[self.OLStatus[OLName]])
-                    time.sleep(0.015)
+                    time.sleep(0.02)
+
+            self.winObj.statusLight.setStyleSheet(connectSetting[self.OLStatus == 42])
 
     @Slot()
     def stop(self):
@@ -144,8 +158,14 @@ class Window(QMainWindow):
         self.window.autoPhase.setEnabled(False)
         self.window.APHS_Label.setText("Status: Waiting...")
         self.device = SR860.SR860Device(self.winObj.IPaddress.text())
-        self.device.autoPhase()
-        self.APHS_Timer.start(3000)
+        res = self.device.autoPhase()
+        if  res != 42:
+            self.APHS_Timer.start(3000)
+        else:
+            self.window.APHS_Label.setText("Status: Failure.")
+            self.window.autoPhase.setEnabled(True)
+
+        self.window.statusLight.setStyleSheet(connectSetting[res == 42])
 
     @Slot()
     def clearStatus(self):
