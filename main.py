@@ -52,6 +52,11 @@ class updateTextTask(QThread):
                     self.winObj.Sensitivity.itemText(res)
                 )
 
+            res = self.device.queryPhase()
+
+            if res != 42:
+                self.winObj.refPhase.setText("%s Deg" % res)
+
             self.winObj.statusLight.setVisible(
                 res != 42 and XYRTDict != 42
             )
@@ -172,10 +177,10 @@ class Window(QMainWindow):
     def APHS_Start(self):
         self.window.autoPhase.setEnabled(False)
         self.window.APHS_Label.setText("Status: Waiting...")
-        self.device = SR860.SR860Device(self.winObj.IPaddress.text())
+        self.device = SR860.SR860Device(self.window.IPaddress.text())
         res = self.device.autoPhase()
         if res != 42:
-            self.APHS_Timer.start(3000)
+            self.APHS_Timer.start(1000)
         else:
             self.window.APHS_Label.setText("Status: Failure.")
             self.window.autoPhase.setEnabled(True)

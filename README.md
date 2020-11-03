@@ -1,6 +1,8 @@
 # Qt_SR860_Monitor
  A simple monitor for Stanford Research SR860 in Python and Qt.
 
+ ![screenshot](screenshot.png)
+
 The SR860 Lock-in Amplifier supports several remote ways for user to control it. However, the [official streaming example](https://www.thinksrs.com/downloads/programs/sr86x/SR86x_StreamingExamples.zip) needs socket programming with `vxi11` . I think it is less stable than the built-in web server provided by SR860, which works in a http`POST` way (though it is still built on `vxi11` essentially).
 
 This tool catches response from SR860. All commands can be found in the [manual](https://www.thinksrs.com/downloads/pdfs/manuals/SR860m.pdf). You can even changes some code to work with SR86X.

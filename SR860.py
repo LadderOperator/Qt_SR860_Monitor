@@ -101,6 +101,29 @@ class SR860Device():
         else:
             return 42
 
+    def queryPhase(self) -> float:
+        """
+        Return Reference Phase Shift (in degrees)
+        """
+        cmd = {"action": "query", "command": "PHAS?"}
+        header["Origin"] = "http://%s" % self.ip
+        header["Referer"] = "http://%s/" % self.ip
+        payload = urlencode(cmd) + "\u0000"
+        req = requests.post(
+            "http://%s/%s" % (self.ip, self.url),
+            data=payload,
+            headers=header,
+            timeout=1
+        )
+        if req.status_code == 200:
+            try:
+                return float(req.text.split("=")[-1])
+            except Exception as e:
+                print(e)
+                return 42
+        else:
+            return 42
+
     def setSensitivity(self, code):
         """
         Set Sensitivity
