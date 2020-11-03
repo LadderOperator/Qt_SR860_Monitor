@@ -29,3 +29,7 @@ SR860锁相放大器支持多种远程方式以便用户控制。但官方提供
 pip install -r requirements.txt
 python main.py
 ```
+
+## Future
+
++ Support customization according to your own work.
